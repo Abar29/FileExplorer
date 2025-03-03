@@ -1,0 +1,437 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>File Explorer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Poppins', sans-serif; /* Apply Poppins to the entire page */
+        }
+        .navbar {
+            background-color: darkred;
+            padding: 50px;
+            text-align: center;
+            font-size: 20px;
+            width: 100%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .navbar img {
+            position: absolute;
+            left: 20px;
+            height: 100px; /* Increased height */
+        }
+        .navbar .university-text {
+            position: absolute;
+            left: 170px; /* Adjust as needed */
+            text-align: left;
+        }
+        .main-container {
+            display: flex;
+            flex-grow: 1;
+        }
+        .sidebar {
+            background-color: #333;
+            color: white;
+            width: 150px;
+            height: calc(100vh - 100px);
+            padding: 20px;
+            box-sizing: border-box;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+        .content {
+            flex-grow: 1;
+            padding: 20px;
+            min-height: calc(100vh - 100px); /* Prevents sidebar from growing */
+        }
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .card, .add-card {
+            display: inline-block;
+            width: 200px;
+            height: 100px;
+            margin: 10px;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            position: relative;
+            text-decoration: none;
+        }
+        .card {
+            position: relative;
+            background: #f4f4f4;
+            color: black;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+            transition: box-shadow 0.3s ease-in-out;
+            border-radius: 10px;
+            overflow: hidden; /* Prevents any layout shifts */
+        }
+        .card:hover {
+            box-shadow: 4px 4px 15px rgba(0, 0, 0, 0.3); /* Enhances shadow on hover */
+        }
+        .add-card {
+            background: #d4d4d4;
+            font-size: 50px;
+            line-height: 60px;
+        }
+        .card .actions {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .card .actions .btn {
+            margin: 0 5px;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+        .card a {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .university-text {
+            margin-left: -60px; /* Adjust the value as needed */
+        }
+        .search-container {
+            display: flex;
+            justify-content: flex-start; /* Align to the left */
+            align-items: center;
+            width: auto; /* Adjust width to content */
+            margin-bottom: 20px;
+        }
+        #search-bar {
+            width: 250px; /* Adjust as needed */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2); /* Adds a subtle shadow */
+            transition: box-shadow 0.3s ease-in-out;
+        }
+        #search-bar:focus {
+            box-shadow: 4px 4px 15px rgba(0, 0, 0, 0.3); /* Enhances shadow when focused */
+            outline: none;
+        }
+        #clear-btn {
+            background: #8B0000;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            display: none;
+        }
+        #clear-btn:hover {
+            background: #333333;
+        }
+        .color-picker {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            border: none;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+        }
+        .color-icon {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 18px;
+            color: #555;
+            cursor: pointer;
+            background: white;
+            padding: 5px;
+            border-radius: 50%;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .color-icon:hover {
+            color: darkred;
+        }
+        .color-picker {
+            position: absolute;
+            display: none;
+            z-index: 10;
+            border: none;
+            outline: none;
+            cursor: pointer;
+        }
+        .archive-btn {
+            background-color: transparent; /* Make the button transparent */
+            border: none; /* Remove the border */
+            color: white; /* Set the text and icon color */
+            padding: 10px; /* Adjust padding */
+            cursor: pointer; /* Add pointer cursor */
+            font-size: 14px; /* Set font size */
+            display: flex; /* Use flexbox to align icon and text */
+            align-items: center; /* Center items vertically */
+            justify-content: center; /* Center content horizontally */
+            gap: 8px; /* Add space between icon and text */
+            transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition for hover effect */
+            font-family: 'Poppins', sans-serif; /* Use Poppins font */
+            width: 100%; /* Make the button full width */
+            border-radius: 5px; /* Add rounded corners */
+            margin: 10px 0; /* Add margin for spacing */
+        }
+        .archive-btn:hover {
+            background-color: rgba(255, 186, 82, 0.2); /* Light orange background on hover */
+            color: #FFF8CD; /* Light yellow text and icon on hover */
+        }
+        .archive-btn:hover {
+            border: 1px solid rgba(255, 186, 82, 0.3); /* Light orange border on hover */
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="navbar">
+        <img src="{% static 'images/GS_logo.png' %}" alt="GS Logo">
+        <div class="university-text">
+            EASTERN VISAYAS STATE UNIVERSITY <br> GRADUATE SCHOOL
+        </div>
+    </div>
+    <div class="main-container">
+        <div class="sidebar">
+            <button onclick="window.location.href='{% url 'archived_categories' %}'" class="archive-btn">
+                <i class="fas fa-archive"></i> Archived
+            </button>
+        </div>
+        <div class="content">
+            <h1>VP,AA</h1>
+            <!-- Search Bar Moved Here -->
+            <div class="search-container">
+                <input type="text" id="search-bar" placeholder="Search Folders..." onkeyup="filterCategories()">
+                <button id="clear-btn" onclick="clearSearch()">X</button>
+            </div>
+            <div class="card-container">
+                {% for category in categories %}
+                <div class="card" data-id="{{ category.id }}" data-name="{{ category.name }}" style="background-color: #f4f4f4;">
+                    <!-- Color Picker Icon -->
+                    <i class="fas fa-palette color-icon" onclick="openColorPicker('{{ category.id }}')"></i>
+                    <input type="color" id="globalColorPicker" class="color-picker" onchange="changeCardColor(event)">
+                    <!-- Category Name -->
+                    <a href="{% url 'upload_file' category.id %}" class="card-link">
+                        <span class="card-name">{{ category.name }}</span>
+                    </a>
+                    <!-- Actions: Edit & Delete -->
+                    <div class="actions">
+                        <i class="fas fa-edit btn" onclick="editCategory(event, '{{ category.id }}')"></i>
+                        <i class="fas fa-trash btn" onclick="deleteCategory(event, '{{ category.id }}')"></i>
+                    </div>
+                </div>
+                {% endfor %}
+                <div class="add-card" onclick="addCategory()">+</div>
+            </div>
+            <form id="add_category_form" method="POST" action="{% url 'add_category' %}" style="display: none;">
+                {% csrf_token %}
+                <input type="text" id="category_name" name="category_name">
+            </form>
+        </div>
+    </div>
+    <script>
+        let selectedCard = null;
+
+        // Move color picker above the selected card
+        function openColorPicker(categoryId, event) {
+            let colorPicker = document.getElementById("globalColorPicker");
+            selectedCard = document.querySelector(`.card[data-id='${categoryId}']`);
+            let cardRect = selectedCard.getBoundingClientRect();
+            colorPicker.style.display = "block";
+            colorPicker.style.top = `${window.scrollY + cardRect.top - 35}px`;
+            colorPicker.style.left = `${window.scrollX + cardRect.left + 10}px`;
+            colorPicker.click();
+        }
+
+        // Change the selected card's color
+        function changeCardColor(event) {
+            if (selectedCard) {
+                let color = event.target.value;
+                selectedCard.style.backgroundColor = color;
+                let categoryId = selectedCard.dataset.id;
+                localStorage.setItem("cardColor_" + categoryId, color);
+            }
+        }
+
+        // Load saved colors when page loads
+        window.onload = function () {
+            document.querySelectorAll(".card").forEach(function (card) {
+                let categoryId = card.dataset.id;
+                let savedColor = localStorage.getItem("cardColor_" + categoryId);
+                if (savedColor) {
+                    card.style.backgroundColor = savedColor;
+                }
+            });
+        };
+
+        function addCategory() {
+            var categoryName = prompt("Enter new category name:");
+            if (categoryName) {
+                document.getElementById('category_name').value = categoryName;
+                document.getElementById('add_category_form').submit();
+            }
+        }
+
+        function editCategory(event, categoryId) {
+            event.stopPropagation();
+            var card = document.querySelector(`.card[data-id='${categoryId}']`);
+            var categoryName = card.dataset.name;
+            var newCategoryName = prompt("Edit category name:", categoryName);
+            if (newCategoryName && newCategoryName !== categoryName) {
+                fetch("{% url 'edit_category' %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: `category_id=${categoryId}&category_name=${newCategoryName}`
+                })
+                .then(response => {
+                    if (response.ok) {
+                        card.querySelector(".card-name").innerText = newCategoryName;
+                        card.dataset.name = newCategoryName;
+                    } else {
+                        alert("Failed to update category.");
+                    }
+                });
+            }
+        }
+
+        function deleteCategory(event, categoryId) {
+            event.stopPropagation();
+            if (confirm("Are you sure you want to delete this category?")) {
+                fetch("{% url 'delete_category' %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: `category_id=${categoryId}`
+                })
+                .then(response => {
+                    if (response.ok) {
+                        document.querySelector(`.card[data-id='${categoryId}']`).remove();
+                    } else {
+                        alert("Failed to delete category.");
+                    }
+                });
+            }
+        }
+
+        function filterCategories() {
+            var input = document.getElementById("search-bar");
+            var filter = input.value.toLowerCase();
+            var cards = document.querySelectorAll(".card");
+            var clearBtn = document.getElementById("clear-btn");
+            var anyVisible = false;
+
+            if (filter.length > 0) {
+                clearBtn.style.display = "block";
+            } else {
+                clearBtn.style.display = "none";
+            }
+
+            cards.forEach(function(card) {
+                var categoryName = card.querySelector(".card-name").innerText.toLowerCase();
+                if (categoryName.includes(filter)) {
+                    card.style.display = "inline-block";
+                    anyVisible = true;
+                } else {
+                    card.style.display = "none";
+                }
+            });
+
+            var noResults = document.getElementById("no-results");
+            if (!anyVisible) {
+                if (!noResults) {
+                    noResults = document.createElement("div");
+                    noResults.id = "no-results";
+                    noResults.innerText = "No categories found.";
+                    noResults.style.color = "red";
+                    noResults.style.marginTop = "20px";
+                    document.querySelector(".card-container").appendChild(noResults);
+                }
+            } else if (noResults) {
+                noResults.remove();
+            }
+        }
+
+    function fetchUpdatedCategories() {
+    fetch('/files/categories/')
+    .then(response => response.json())
+    .then(data => {
+        let container = document.querySelector(".card-container");
+        if (!container) return; // Prevent errors if container is missing
+        container.innerHTML = ""; // Clear existing categories
+        data.categories.forEach(category => {
+            let newCard = document.createElement("div");
+            newCard.classList.add("card");
+            newCard.dataset.id = category.id;
+            newCard.innerHTML = `
+                <span class="card-name">${category.name}</span>
+                <i class="fas fa-edit btn" onclick="editCategory(event, '${category.id}')"></i>
+                <i class="fas fa-trash btn" onclick="deleteCategory(event, '${category.id}')"></i>
+            `;
+            container.appendChild(newCard);
+        });
+    })
+    .catch(error => console.error("Error fetching categories:", error));
+}
+
+
+function fetchUpdatedFolders() {
+    fetch('/files/folders/')
+    .then(response => response.json())
+    .then(data => {
+        let container = document.querySelector(".folder-container");
+        if (!container) return;
+        container.innerHTML = "";
+        data.folders.forEach(folder => {
+            let newCard = document.createElement("div");
+            newCard.classList.add("card");
+            newCard.dataset.id = folder.id;
+            newCard.innerHTML = `<span class="card-name">${folder.name}</span>`;
+            container.appendChild(newCard);
+        });
+    })
+    .catch(error => console.error("Error fetching folders:", error));
+}
+
+function fetchUpdatedFiles() {
+    fetch('/files/files/')
+    .then(response => response.json())
+    .then(data => {
+        let container = document.querySelector(".file-container");
+        if (!container) return;
+        container.innerHTML = "";
+        data.files.forEach(file => {
+            let newCard = document.createElement("div");
+            newCard.classList.add("card");
+            newCard.dataset.id = file.id;
+            newCard.innerHTML = `<span class="card-name">${file.file_name}</span>`;
+            container.appendChild(newCard);
+        });
+    })
+    .catch(error => console.error("Error fetching files:", error));
+}
+
+       
+    </script>
+</body>
+</html>

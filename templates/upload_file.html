@@ -1,0 +1,264 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Upload Files</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        .navbar {
+            background-color: darkred;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 18px;
+            width: 100%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar img {
+            height: 50px; /* Adjusted logo size */
+            margin-right: 15px; /* Space between logo and text */
+        }
+
+        .navbar .university-text {
+            text-align: left;
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: darkred;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 24px;
+            color: darkred;
+            margin-bottom: 15px;
+        }
+
+        .folder-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .folder-card {
+            width: 150px;
+            padding: 20px;
+            text-align: center;
+            background: #fff;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .folder-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .folder-card i {
+            font-size: 24px; /* Adjusted icon size */
+            color: darkred;
+            margin-bottom: 10px;
+        }
+
+        .folder-card a {
+            margin: 0 5px;
+            color: darkred;
+            text-decoration: none;
+        }
+
+        .folder-card a:hover {
+            color: #a52a2a;
+        }
+
+        .file-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .file-list li {
+            margin: 10px 0;
+            padding: 10px;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .file-list li a {
+            margin: 0 5px;
+            color: darkred;
+            text-decoration: none;
+        }
+
+        .file-list li a:hover {
+            color: #a52a2a;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"], input[type="file"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: darkred;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #a52a2a;
+        }
+
+        .back-button {
+            margin-top: 20px;
+            background-color: #333;
+        }
+
+        .back-button:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <img src="{% static 'images/GS_logo.png' %}" alt="GS Logo">
+        <div class="university-text">
+            EASTERN VISAYAS STATE UNIVERSITY <br> GRADUATE SCHOOL
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>{{ category.name }} - Upload Files</h1>
+
+        <!-- Folder Creation Form -->
+        <form method="post" action="{% url 'create_folder' category.id %}">
+            {% csrf_token %}
+            <input type="text" name="folder_name" placeholder="New Folder Name" required>
+            <button type="submit" name="create_folder">Create Folder</button>
+        </form>
+
+        <!-- Display Folders as Cards -->
+        <h2>Folders</h2>
+        <div class="folder-container">
+            {% for folder in folders %}
+                <div class="folder-card" onclick="window.location.href='{% url 'folder_detail' folder.id %}'">
+                    <i class="fas fa-folder"></i><br>
+                    {{ folder.name }}
+                    <br>
+                    <!-- Edit Folder -->
+                    <a href="#" onclick="editFolder({{ folder.id }}, '{{ folder.name }}'); event.stopPropagation();">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <!-- Delete Folder -->
+                    <a href="#" onclick="event.stopPropagation(); if(confirm('Are you sure you want to archive this folder?')) { document.getElementById('delete-folder-form-{{ folder.id }}').submit(); }">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                    <form id="delete-folder-form-{{ folder.id }}" method="post" action="{% url 'archive_folder' folder.id %}" style="display: none;">
+                        {% csrf_token %}
+                    </form>
+                </div>
+            {% empty %}
+                <p>No folders yet.</p>
+            {% endfor %}
+        </div>
+
+        <!-- File Upload Form -->
+        <h2>Upload Files</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" name="upload_file">Upload</button>
+        </form>
+
+        <!-- Uploaded Files List -->
+        <h2>Uploaded Files</h2>
+        <ul class="file-list">
+            {% for file in files %}
+                <li>
+                    <a href="{% url 'view_file' file.id %}" target="_blank"><i class="fas fa-eye"></i></a>
+                    <a href="{{ file.file.url }}" download><i class="fas fa-download"></i></a>
+                    <a href="#" onclick="if(confirm('Are you sure you want to archive this file?')) { document.getElementById('delete-file-form-{{ file.id }}').submit(); }">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                    <span>{{ file.file.name }}</span>
+                    <form id="delete-file-form-{{ file.id }}" method="post" action="{% url 'archive_file' file.id %}" style="display: none;">
+                        {% csrf_token %}
+                    </form>
+                </li>
+            {% empty %}
+                <p>No files uploaded yet.</p>
+            {% endfor %}
+        </ul>
+
+        <!-- Back Button -->
+        <button class="back-button" onclick="window.location.href='{% url 'category_list' %}'">Back</button>
+    </div>
+
+    <script>
+        function editFolder(folderId, folderName) {
+            let newName = prompt("Enter new folder name:", folderName);
+            if (newName !== null && newName.trim() !== "") {
+                fetch(`/files/edit-folder/${folderId}/?new_name=${encodeURIComponent(newName)}`, {
+                    method: "GET"
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert("Error updating folder: " + (data.error || "Unknown error"));
+                    }
+                })
+                .catch(error => {
+                    console.error("Fetch error:", error);
+                    alert("Error updating folder.");
+                });
+            }
+        }
+    </script>
+</body>
+</html>

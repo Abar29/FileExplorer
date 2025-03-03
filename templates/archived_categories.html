@@ -1,0 +1,88 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Archived Items</title>
+    <style>
+        .card-container { display: flex; flex-wrap: wrap; gap: 10px; }
+        .card { padding: 15px; border: 1px solid #ccc; border-radius: 8px; }
+        .restore-btn { background-color: green; color: white; border: none; padding: 5px 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Archived Categories</h1>
+    <div class="card-container">
+        {% for category in archived_categories %}
+        <div class="card" data-id="{{ category.id }}">
+            <span class="card-name">{{ category.name }}</span>
+            <button class="restore-btn" onclick="unarchiveCategory('{{ category.id }}')">Restore</button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <h1>Archived Folders</h1>
+    <div class="card-container">
+        {% for folder in archived_folders %}
+        <div class="card" data-id="{{ folder.id }}">
+            <span class="card-name">{{ folder.name }}</span>
+            <button class="restore-btn" onclick="unarchiveFolder('{{ folder.id }}')">Restore</button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <h1>Archived Files</h1>
+    <div class="card-container">
+        {% for file in archived_files %}
+        <div class="card" data-id="{{ file.id }}">
+            <span class="card-name">{{ file.file.name }}</span>
+            <button class="restore-btn" onclick="unarchiveFile('{{ file.id }}')">Restore</button>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% csrf_token %}
+    <script>
+     function restoreItem(url, itemId, itemType) {
+    const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+    
+    fetch(url, {
+        method: "POST",
+        headers: { "X-CSRFToken": csrfToken }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            // Remove the restored item from the archive list
+            document.querySelector(`.card[data-id="${itemId}"]`).remove();
+            
+            // Fetch updated categories, folders, or files dynamically
+            if (itemType === "category") {
+                fetchUpdatedCategories();
+            } else if (itemType === "folder") {
+                fetchUpdatedFolders();
+            } else if (itemType === "file") {
+                fetchUpdatedFiles();
+            }
+        } else {
+            alert("Failed to restore item.");
+        }
+    })
+    .catch(error => console.error("Error:", error));
+}
+
+// Update unarchive functions
+function unarchiveCategory(category_id) {
+    restoreItem(`/files/unarchive-category/${category_id}/`, category_id, "category");
+}
+
+function unarchiveFolder(folder_id) {
+    restoreItem(`/files/unarchive-folder/${folder_id}/`, folder_id, "folder");
+}
+
+function unarchiveFile(file_id) {
+    restoreItem(`/files/unarchive-file/${file_id}/`, file_id, "file");
+}
+
+    </script>
+</body>
+</html>
